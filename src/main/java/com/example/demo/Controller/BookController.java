@@ -3,46 +3,39 @@ package com.example.demo.controller;
 import com.example.demo.model.Book;
 import com.example.demo.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
-import java.util.Optional;
-
-@RestController
-@RequestMapping("/api/books")
+@Controller
 public class BookController {
 
     @Autowired
     private BookRepository bookRepository;
 
-    // Create a new book
-    @PostMapping
-    public Book createBook(@RequestBody Book book) {
-        return bookRepository.save(book);
+    // Serve the homepage with the list of books
+    @GetMapping("/")
+    public String homePage(Model model) {
+        // Fetch all books from the database
+        model.addAttribute("books", bookRepository.findAll());
+        return "index";  // Return the Thymeleaf template (index.html)
     }
 
-    // Get all books
-    @GetMapping
-    public List<Book> getAllBooks() {
-        return bookRepository.findAll();
-    }
+    // Handle the form submission for adding a new book
+    @PostMapping("/api/books")
+    public String addBook(@RequestParam String title, @RequestParam String author, @RequestParam double price) {
+        // Create a new book object
+        Book book = new Book();
+        book.setTitle(title);
+        book.setAuthor(author);
+        book.setPrice(price);
 
-    // Get a book by ID
-    @GetMapping("/{id}")
-    public Optional<Book> getBookById(@PathVariable Long id) {
-        return bookRepository.findById(id);
-    }
+        // Save the book to the database
+        bookRepository.save(book);
 
-    // Update a book
-    @PutMapping("/{id}")
-    public Book updateBook(@PathVariable Long id, @RequestBody Book book) {
-        book.setId(id);
-        return bookRepository.save(book);
-    }
-
-    // Delete a book
-    @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable Long id) {
-        bookRepository.deleteById(id);
+        // Redirect back to the homepage to refresh the list of books
+        return "redirect:/";
     }
 }
